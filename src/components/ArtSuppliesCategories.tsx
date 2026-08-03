@@ -165,9 +165,9 @@ export function ArtSuppliesCategories() {
     },
     {
       id: 12,
-      name: "سكتش كبير",
-      englishName: "Large Sketch",
-      description: "دفاتر سكتش بحجم كبير",
+      name: "كراسة رسم كبيرة",
+      englishName: "Large Drawing Notebook",
+      description: "كراسات رسم بحجم كبير",
       icon: FileText,
       color: "bg-gradient-to-br from-emerald-500 to-emerald-600",
       textColor: "text-emerald-600",
@@ -178,9 +178,9 @@ export function ArtSuppliesCategories() {
     },
     {
       id: 13,
-      name: "سكتش صغير",
-      englishName: "Small Sketch",
-      description: "دفاتر سكتش بحجم صغير",
+      name: "كراسة رسم صغيرة",
+      englishName: "Small Drawing Notebook",
+      description: "كراسات رسم بحجم صغير",
       icon: FileText,
       color: "bg-gradient-to-br from-lime-500 to-lime-600",
       textColor: "text-lime-600",
@@ -204,19 +204,6 @@ export function ArtSuppliesCategories() {
     },
     
     // Foam Materials
-    {
-      id: 15,
-      name: "فوم عادي",
-      englishName: "Regular Foam",
-      description: "فوم عادي للأعمال اليدوية",
-      icon: Layers,
-      color: "bg-gradient-to-br from-yellow-500 to-yellow-600",
-      textColor: "text-yellow-600",
-      bgColor: "bg-yellow-50",
-      count: "35+ منتج",
-      route: "/art-supplies/regular-foam",
-      emoji: "🟡"
-    },
     {
       id: 16,
       name: "فوم لاصق",

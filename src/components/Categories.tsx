@@ -1,126 +1,135 @@
-// src/components/Categories.tsx
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
-import { PenTool, Scissors, Calculator, Palette, Archive, Briefcase, BookOpen } from "lucide-react";
-export function Categories() {
-  const categories = [
-    {
-      id: 1,
-      name: "أقلام ومستلزمات الكتابة",
-      description: "أقلام حبر جاف، رصاص، ماركر وقلم رصاص ملون",
-      icon: PenTool,
-      color: "bg-gradient-to-br from-blue-500 to-blue-600",
-      textColor: "text-blue-600",
-      bgColor: "bg-blue-50",
-      count: "500+ منتج"
-    },
-    {
-      id: 2,
-      name: "أدوات القص واللصق و تلوين",
-      description: "مقصات، لاصق، شريط لاصق، ألوان وأدوات الرسم",
-      icon: Scissors,
-      color: "bg-gradient-to-br from-green-500 to-green-600",
-      textColor: "text-green-600",
-      bgColor: "bg-green-50",
-      count: "500+ منتج"
-    },
-    {
-      id: 3,
-      name: "آلات حاسبة ومساطر",
-      description: "آلات حاسبة، مساطر، بوصلة وأدوات هندسية",
-      icon: Calculator,
-      color: "bg-gradient-to-br from-purple-500 to-purple-600",
-      textColor: "text-purple-600",
-      bgColor: "bg-purple-50",
-      count: "150+ منتج"
-    },
-    {
-      id: 5,
-      name: "ملفات ومنظمات",
-      description: "ملفات، درج أوراق، منظمات مكتبية وأرشيف",
-      icon: Archive,
-      color: "bg-gradient-to-br from-orange-500 to-orange-600",
-      textColor: "text-orange-600",
-      bgColor: "bg-orange-50",
-      count: "250+ منتج"
-    },
-    {
-      id: 6,
-      name: "مستلزمات المكتب",
-      description: "دباسة، خرامة، ممحاة وأدوات مكتبية أخرى",
-      icon: Briefcase,
-      color: "bg-gradient-to-br from-teal-500 to-teal-600",
-      textColor: "text-teal-600",
-      bgColor: "bg-teal-50",
-      count: "400+ منتج"
-    },
-    {
-      id: 7,
-      name: "كشكيل و الكراسات و كشاكيل سلك",
-      description: "كراسات وكشاكيل بأنواع وأحجام مختلفة",
-      icon: BookOpen,
-      color: "bg-gradient-to-br from-indigo-500 to-indigo-600",
-      textColor: "text-indigo-600",
-      bgColor: "bg-indigo-50",
-      count: "350+ منتج"
-    }
-  ];
+import { Link } from "react-router-dom";
+
+// Categories with creative modern design
+const categories = [
+  {
+    id: 1,
+    name: "نوت بوك",
+    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?q=80&w=300&auto=format&fit=crop",
+    gradient: "from-orange-400/20 via-amber-300/20 to-yellow-200/20",
+    accentColor: "border-orange-400/30",
+    path: "/category/notebooks"
+  },
+  {
+    id: 2,
+    name: "كتب",
+    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=300&auto=format&fit=crop",
+    gradient: "from-emerald-400/20 via-green-300/20 to-lime-200/20",
+    accentColor: "border-emerald-400/30",
+    path: "/category/books"
+  },
+  {
+    id: 3,
+    name: "ادوات هندسيه",
+    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=300&auto=format&fit=crop",
+    gradient: "from-rose-400/20 via-pink-300/20 to-fuchsia-200/20",
+    accentColor: "border-rose-400/30",
+    path: "/category/geometry"
+  },
+  {
+    id: 4,
+    name: "تلوين",
+    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=300&auto=format&fit=crop",
+    gradient: "from-violet-400/20 via-purple-300/20 to-indigo-200/20",
+    accentColor: "border-violet-400/30",
+    path: "/category/coloring"
+  },
+  {
+    id: 5,
+    name: "استيكرات",
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=300&auto=format&fit=crop",
+    gradient: "from-pink-400/20 via-rose-300/20 to-red-200/20",
+    accentColor: "border-pink-400/30",
+    path: "/category/stickers"
+  },
+  {
+    id: 6,
+    name: "اقلام",
+    image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=300&auto=format&fit=crop",
+    gradient: "from-sky-400/20 via-cyan-300/20 to-blue-200/20",
+    accentColor: "border-sky-400/30",
+    path: "/category/pens"
+  },
+];
+
+export const Categories = () => {
+  // عرض أول 4 أقسام فقط
+  const featuredCategories = categories.slice(0, 4);
+  
   return (
-    <section className="py-16 bg-secondary/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            فئات الأدوات المكتبية
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            اكتشف مجموعة واسعة من الأدوات المكتبية والقرطاسية عالية الجودة
-          </p>
+    <section className="py-6 bg-gradient-to-b from-background via-gray-50/30 to-background">
+      <div className="container px-4">
+        {/* Section Header */}
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            to="/categories"
+            className="text-xs font-bold text-primary hover:text-primary/80 transition-all px-4 py-2 bg-primary/5 rounded-full hover:bg-primary/10 hover:scale-105"
+          >
+            عرض الكل
+          </Link>
+          <h2 className="text-lg font-black text-gray-800 tracking-tight">تسوق حسب الفئة</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category) => {
-            const IconComponent = category.icon;
-            const to = category.name.includes("أقلام") ? "/pens" : 
-                      category.name.includes("أدوات القص واللصق و تلوين") ? "/cutting-pasting-tools" : 
-                      category.name.includes("آلات حاسبة ومساطر") ? "/calculators-rulers" :
-                      category.name.includes("مستلزمات المكتب") ? "/office-supplies" :
-                      category.name.includes("كشكيل") ? "/notebooks" : "/categories";
-            return (
-              <Card key={category.id} className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-0 overflow-hidden">
-                <CardContent className="p-0">
-                  <div className={`${category.color} p-6 text-white relative overflow-hidden`}>
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-                    <div className="relative z-10">
-                      <IconComponent className="h-12 w-12 mb-4" />
-                      <div className="text-sm opacity-90 mb-1">{category.count}</div>
-                      <h3 className="text-xl font-bold">{category.name}</h3>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <p className="text-muted-foreground mb-4 leading-relaxed">
-                      {category.description}
-                    </p>
-                    
-                    <Button 
-                      asChild
-                      variant="outline" 
-                      className={`w-full ${category.textColor} border-current hover:bg-current hover:text-white transition-colors`}
-                    >
-                      <Link to={to}>تصفح المنتجات</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-        <div className="text-center mt-12">
-          <Button asChild className="btn-tafaneen text-lg px-8 py-4 h-auto">
-            <Link to="/categories">عرض جميع الفئات</Link>
-          </Button>
+
+        {/* Grid Layout: 2x2 على الموبايل، صف واحد على الديسكتوب */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto md:max-w-full">
+          {featuredCategories.map((category, index) => (
+            <Link
+              key={category.id}
+              to={category.path}
+              className="group flex flex-col items-center"
+            >
+              {/* Organic Blob Shape with Glassmorphism */}
+              <div className={`
+                relative w-full aspect-square mx-auto
+                bg-gradient-to-br ${category.gradient}
+                backdrop-blur-xl
+                overflow-hidden
+                transition-all duration-500 ease-out
+                group-hover:scale-105 group-hover:-translate-y-1
+                border-2 ${category.accentColor}
+                shadow-md shadow-black/5
+                group-hover:shadow-xl group-hover:shadow-primary/15
+              `}
+                style={{
+                  borderRadius: index % 3 === 0
+                    ? '60% 40% 30% 70% / 60% 30% 70% 40%'
+                    : index % 3 === 1
+                      ? '30% 60% 70% 40% / 50% 60% 30% 60%'
+                      : '40% 60% 60% 40% / 60% 40% 60% 40%',
+                }}>
+
+                {/* Animated Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/30 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                {/* Product Image with Mask */}
+                <div className="absolute inset-2 md:inset-3 overflow-hidden"
+                  style={{
+                    borderRadius: index % 3 === 0
+                      ? '55% 45% 35% 65% / 55% 35% 65% 45%'
+                      : index % 3 === 1
+                        ? '35% 55% 65% 45% / 45% 55% 35% 55%'
+                        : '45% 55% 55% 45% / 55% 45% 55% 45%',
+                  }}>
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                </div>
+
+                {/* Floating Particles Effect */}
+                <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-white/50 rounded-full animate-pulse" />
+                <div className="absolute bottom-2 left-2 w-1 h-1 bg-white/30 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+              </div>
+
+              {/* Category Name with Modern Typography */}
+              <span className="mt-3 text-xs md:text-sm font-black text-gray-700 text-center group-hover:text-primary transition-all duration-300">
+                {category.name}
+              </span>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
   );
-}
+};

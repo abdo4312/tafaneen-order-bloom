@@ -242,7 +242,7 @@ function drawInvoiceSummary(doc: jsPDF, data: EnhancedInvoiceData, yPos: number,
   doc.setFont('helvetica', 'bold');
 
   let summaryY = yPos + 8;
-  
+
   // المجموع الفرعي
   const subtotal = data.subtotal || data.totalPrice;
   doc.text('المجموع الفرعي:', summaryX + 5, summaryY);
@@ -285,7 +285,7 @@ function drawPickupInfo(doc: jsPDF, deliveryMethod: string, yPos: number, margin
   doc.setTextColor(COLORS.primaryDark);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  
+
   const title = deliveryMethod === 'pickup' ? 'معلومات الاستلام:' : 'معلومات التوصيل:';
   doc.text(title, margin + 5, yPos);
   yPos += 8;
@@ -309,7 +309,7 @@ function drawPickupInfo(doc: jsPDF, deliveryMethod: string, yPos: number, margin
   } else {
     doc.text('• سيتم التواصل معكم لتحديد موعد التوصيل', margin + 10, yPos);
     yPos += 6;
-            doc.text('• رسوم التوصيل: مجاني للطلبات أكثر من ١٠٠٠ جنيه', margin + 10, yPos);
+    doc.text('• رسوم التوصيل: مجاني للطلبات أكثر من ١٠٠٠ جنيه', margin + 10, yPos);
     yPos += 6;
   }
 

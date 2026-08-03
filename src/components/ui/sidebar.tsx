@@ -2,7 +2,6 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
-
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -24,6 +23,69 @@ const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
+// دالة آمنة للتعامل مع الكوكيز
+const setCookieSafely = (name: string, value: string, maxAge: number): boolean => {
+  try {
+    // التحقق من وجود document والإذن بالكتابة
+    if (typeof document === 'undefined' || typeof document.cookie === 'undefined') {
+      console.warn('Cookies not supported in this environment');
+      return false;
+    }
+    // تنظيف وتعقيم القيم لمنع Cookie Injection
+    const safeName = encodeURIComponent(name.replace(/[;\s=]/g, ''));
+    const safeValue = encodeURIComponent(value.toString().replace(/[;\s]/g, ''));
+    const safeMaxAge = Math.max(0, Math.floor(maxAge));
+    
+    // التحقق من طول الكوكي (معظم المتصفحات تحدد الحد الأقصى بـ 4KB)
+    if (safeName.length + safeValue.length > 4000) {
+      console.warn('Cookie value too long');
+      return false;
+    }
+    // إعداد خصائص الأمان
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    const secureFlag = isSecure ? 'Secure;' : '';
+    
+    const cookieString = `${safeName}=${safeValue}; path=/; max-age=${safeMaxAge}; SameSite=Strict; ${secureFlag} HttpOnly=false`;
+    
+    document.cookie = cookieString;
+    
+    return true;
+  } catch (error) {
+    console.warn('تعذر حفظ إعدادات الشريط الجانبي:', error);
+    return false;
+  }
+};
+
+// دالة آمنة لقراءة الكوكيز
+const getCookieSafely = (name: string): string | null => {
+  try {
+    if (typeof document === 'undefined' || typeof document.cookie === 'undefined') {
+      return null;
+    }
+    const safeName = encodeURIComponent(name.replace(/[;\s=]/g, ''));
+    const nameEQ = safeName + "=";
+    const cookies = document.cookie.split(';');
+    
+    for (const cookie of cookies) {
+      const c = cookie.trim();
+      if (c.indexOf(nameEQ) === 0) {
+        const value = c.substring(nameEQ.length);
+        try {
+          return decodeURIComponent(value);
+        } catch (decodeError) {
+          console.warn('خطأ في فك تشفير الكوكي:', decodeError);
+          return null;
+        }
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('خطأ في قراءة الكوكي:', error);
+    return null;
+  }
+};
+
 type SidebarContext = {
   state: "expanded" | "collapsed"
   open: boolean
@@ -41,7 +103,6 @@ function useSidebar() {
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider.")
   }
-
   return context
 }
 
@@ -68,9 +129,19 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
 
+    // قراءة الحالة المحفوظة من الكوكي بطريقة آمنة
+    const [_open, _setOpen] = React.useState(() => {
+      if (openProp !== undefined) return openProp;
+      
+      const savedState = getCookieSafely(SIDEBAR_COOKIE_NAME);
+      if (savedState === 'true') return true;
+      if (savedState === 'false') return false;
+      
+      return defaultOpen;
+    });
+
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
@@ -80,9 +151,8 @@ const SidebarProvider = React.forwardRef<
         } else {
           _setOpen(openState)
         }
-
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        // حفظ الحالة بطريقة آمنة
+        setCookieSafely(SIDEBAR_COOKIE_NAME, openState.toString(), SIDEBAR_COOKIE_MAX_AGE);
       },
       [setOpenProp, open]
     )

@@ -1,0 +1,18 @@
+/* Wave Bottom Nav specific styles */
+.bottom-nav-wave {
+  filter: drop-shadow(0 -5px 10px rgba(0, 0, 0, 0.05));
+}
+
+.nav-item-active {
+  color: hsl(var(--primary));
+  font-weight: 700;
+}
+
+.nav-item-inactive {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.nav-item-inactive:hover {
+  color: hsl(var(--primary) / 0.7);
+}

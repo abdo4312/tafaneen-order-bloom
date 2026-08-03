@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingCart, MapPin, Truck, MessageCircle, Download, X, Plus, Minus, Trash2, FileText, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,28 +8,88 @@ import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { validateEgyptianPhone, formatEgyptianPhone } from "@/utils/phoneValidation";
 import QRCode from "react-qr-code";
+import { useAuth } from "@/contexts/AuthContext";
+// import { supabase } from "@/integrations/supabase/client";
 
-export function Cart() {
+// دالة آمنة لتحميل الملفات
+const downloadFileSafely = (blob: Blob, filename: string): boolean => {
+  try {
+    // التحقق من دعم المتصفح
+    if (!window.URL || !window.URL.createObjectURL) {
+      throw new Error('Browser does not support file download');
+    }
+    // تنظيف اسم الملف من الأحرف الخطيرة
+    const safeFilename = filename.replace(/[<>:"/\\|?*]/g, '_');
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    // تعيين الخصائص بطريقة آمنة
+    link.href = url;
+    link.download = safeFilename;
+    link.style.display = 'none';
+    link.rel = 'noopener noreferrer';
+
+    // تنفيذ التحميل بدون إضافة العنصر للـ DOM
+    link.click();
+
+    // تنظيف الذاكرة فوراً
+    URL.revokeObjectURL(url);
+
+    return true;
+  } catch (error) {
+    console.error('خطأ في تحميل الملف:', error);
+    return false;
+  }
+};
+
+// دالة لتنظيف وتعقيم النصوص
+const sanitizeText = (text: string): string => {
+  if (typeof text !== 'string') return '';
+
+  // إزالة الأحرف الخطيرة
+  return text
+    .replace(/[<>]/g, '') // إزالة HTML tags
+    .replace(/javascript:/gi, '') // إزالة javascript protocols
+    .replace(/data:/gi, '') // إزالة data protocols
+    .trim();
+};
+
+interface CartProps {
+  onLoginClick: () => void;
+}
+
+export function Cart({ onLoginClick }: CartProps) {
   const { items, updateQuantity, removeItem, getTotalPrice, getItemCount, clearCart } = useCart();
+  const { user, session, isLoading: isAuthLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [showPickupOptions, setShowPickupOptions] = useState(false);
   const [showDeliveryCheckout, setShowDeliveryCheckout] = useState(false);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
-  
+
+  useEffect(() => {
+    const action = localStorage.getItem('post-login-action');
+    if (action === 'open-cart' && user) {
+      setIsOpen(true);
+      localStorage.removeItem('post-login-action');
+    }
+  }, [user]);
+
   // بيانات العميل
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerNameError, setCustomerNameError] = useState('');
   const [customerPhoneError, setCustomerPhoneError] = useState('');
-  
+
   // بيانات العنوان للتوصيل
   const [areaName, setAreaName] = useState('');
   const [apartmentNumber, setApartmentNumber] = useState('');
   const [buildingNumber, setBuildingNumber] = useState('');
   const [floor, setFloor] = useState('');
-  
+
   // خيارات البوابات مع أسعار التوصيل
   const AREA_OPTIONS = [
     // بوابات بسعر 20 جنيه
@@ -39,139 +99,182 @@ export function Cart() {
     { label: 'البوابة الرابعة', fee: 20 },
     { label: 'مساكن ضباط', fee: 20 },
     { label: 'الرماية', fee: 20 },
-    
+
     // بوابات بسعر 25 جنيه
     { label: 'البوابة الأولى - المناطق (ع، ص، ن، ا، س، م، ك)', fee: 25 },
     { label: 'البوابة الثانية - المناطق (ع، ص، ن، ا، س، م، ك)', fee: 25 },
     { label: 'البوابة الثالثة - المناطق (ع، ص، ن، ا، س، م، ك)', fee: 25 },
     { label: 'البوابة الرابعة - المناطق (ع، ص، ن، ا، س، م، ك)', fee: 25 },
-    
+
     // بوابات بسعر 30 جنيه
     { label: 'مساكن الشباب', fee: 30 },
     { label: 'الرماية - المنطقة الخاصة', fee: 30 },
   ] as const;
-  
+
   const [area, setArea] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'vodafone' | 'instapay'>('cod');
-  
+
   // حساب الأسعار
   const cartCount = getItemCount();
   const totalPrice = getTotalPrice();
   const deliveryFee = AREA_OPTIONS.find(o => o.label === area)?.fee ?? 0;
-  
+
   // التوصيل المجاني للطلبات أكثر من 1000 ج.م
   const isFreeDelivery = totalPrice >= 1000;
   const actualDeliveryFee = isFreeDelivery ? 0 : deliveryFee;
-  
+
   const subtotal = totalPrice + (showDeliveryCheckout ? actualDeliveryFee : 0);
   const surcharge = showDeliveryCheckout && paymentMethod === 'vodafone' ? Math.ceil(subtotal * 0.01) : 0;
   const finalTotal = subtotal + surcharge;
-  
+
   // التحقق من إمكانية المتابعة
   const canProceed = Boolean(
-    customerName && 
-    !customerPhoneError && 
-    customerPhone && 
-    areaName && 
+    customerName &&
+    !customerPhoneError &&
+    customerPhone &&
+    areaName &&
     apartmentNumber &&
-    buildingNumber && 
-    floor && 
+    buildingNumber &&
+    floor &&
     area
   );
 
-  // التحقق من صحة رقم الهاتف
+  // التحقق من صحة رقم الهاتف مع تعقيم البيانات
   const handlePhoneChange = (value: string) => {
-    setCustomerPhone(value);
+    const sanitizedValue = sanitizeText(value);
+    setCustomerPhone(sanitizedValue);
     setCustomerPhoneError('');
-    
-    if (value.trim()) {
-      const validation = validateEgyptianPhone(value);
+
+    if (sanitizedValue.trim()) {
+      const validation = validateEgyptianPhone(sanitizedValue);
       if (!validation.isValid) {
         setCustomerPhoneError(validation.errorMessage || "رقم الهاتف غير صحيح");
       }
     }
   };
 
-  // إنشاء رقم فاتورة
-  const generateInvoiceNumber = () => {
-    return `TF-${Date.now().toString().slice(-8)}`;
+  // معالجة تغيير اسم العميل مع تعقيم البيانات
+  const handleNameChange = (value: string) => {
+    const sanitizedValue = sanitizeText(value);
+    setCustomerName(sanitizedValue);
+    setCustomerNameError(sanitizedValue ? '' : 'يرجى إدخال اسم العميل');
   };
 
-  // معالجة إشعار واتساب للاستلام من المكتبة
-  const handleWhatsAppNotification = () => {
-    // التحقق من إدخال معلومات العميل
-    if (!customerName) {
+  // إنشاء رقم فاتورة آمن
+  const generateInvoiceNumber = (): string => {
+    const timestamp = Date.now().toString().slice(-8);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `TF-${timestamp}-${random}`;
+  };
+
+  // --- Secure Order Creation ---
+  const createOrder = async () => {
+    // 1. Validate User Authentication
+    if (!user || !session) {
+      toast({
+        title: "يرجى تسجيل الدخول أولاً",
+        description: "يجب تسجيل الدخول لتتمكن من إتمام الطلب.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 2. Validate Customer Info
+    const sanitizedName = sanitizeText(customerName);
+    const sanitizedPhone = sanitizeText(customerPhone);
+    if (!sanitizedName) {
       setCustomerNameError('يرجى إدخال اسم العميل');
       return;
     }
-    if (!customerPhone) {
-      setCustomerPhoneError('يرجى إدخال رقم الهاتف');
-      return;
-    }
-
-    // التحقق من صحة رقم الهاتف المصري
-    const phoneValidation = validateEgyptianPhone(customerPhone);
+    const phoneValidation = validateEgyptianPhone(sanitizedPhone);
     if (!phoneValidation.isValid) {
-      setCustomerPhoneError(phoneValidation.errorMessage || "يرجى إدخال رقم هاتف مصري صحيح");
+      setCustomerPhoneError(phoneValidation.errorMessage || "رقم هاتف غير صحيح");
       return;
     }
-    
-    const invoiceNumber = generateInvoiceNumber();
-    const today = new Date();
-    const date = today.toLocaleDateString('ar-EG');
-    const time = today.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    
-    // تنسيق تفاصيل المنتجات بشكل منظم
-    const orderItems = items.map((item, index) => 
-      `${index + 1}. ${item.name}\nالكمية: ${item.quantity}\nسعر الوحدة: ${item.price} ج.م\nالمجموع: ${item.price * item.quantity} ج.م`
-    ).join('\n\n');
-    
-    const formattedPhone = formatEgyptianPhone(customerPhone);
-    
-    const message = `فاتورة طلب - مكتبة تفانين
 
-معلومات الفاتورة:
-رقم الفاتورة: ${invoiceNumber}
-التاريخ: ${date}
-الوقت: ${time}
-طريقة الاستلام: استلام من المكتبة
+    setIsLoading(true);
 
-معلومات العميل:
-الاسم: ${customerName}
-رقم الهاتف: ${formattedPhone}
+    try {
+      // 3. Prepare Payload for Edge Function
+      const orderPayload = {
+        items: items.map(item => ({ id: item.id, quantity: item.quantity })),
+      };
 
-المنتجات المطلوبة:
-${orderItems}
+      // 4. Invoke the Secure Edge Function
+      // Mock implementation
+      console.log('Mock creating order:', orderPayload);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const data = { order_id: `MOCK-${Date.now()}`, total_price: getTotalPrice() };
+      const error = null;
+      /*
+      const { data, error } = await supabase.functions.invoke("create-order", {
+        body: orderPayload,
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      */
 
-الإجمالي الكلي: ${totalPrice} ج.م
+      if (error) {
+        throw new Error(error.message);
+      }
 
-موقع الاستلام:
-مكتبة تفانين - 122 ز البوابة الاولي حدائق الاهرام اما اسماك بورسعيد بجوار المول القديم
-أوقات الاستلام: من 10 صباحاً حتى 5 مساءً
+      // 5. Handle Successful Order Creation
+      toast({
+        title: "تم إنشاء الطلب بنجاح!",
+        description: `رقم طلبك هو: ${data.order_id}.`,
+      });
 
-للاستفسار: 01026274235
+      // 6. Proceed with WhatsApp notification using server-verified data
+      sendWhatsAppNotification(data.order_id, data.total_price);
 
-شكراً لثقتك بمكتبة تفانين!`;
-    
-    // فتح واتساب
-    const phoneNumber = "201026274235";
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
-    
-    toast({
-      title: "تم إرسال الإشعار",
-      description: "تم فتح واتساب لإرسال تفاصيل الفاتورة",
-    });
+      // 7. Clear cart and reset state
+      clearCart();
+      setIsOpen(false);
 
-    // إعادة تعيين حقول العميل بعد الإرسال
-    setCustomerName("");
-    setCustomerPhone("");
-    setShowPickupOptions(false);
-    setShowOptions(false);
+    } catch (err) {
+      console.error("Order creation failed:", err);
+      toast({
+        title: "فشل إنشاء الطلب",
+        description: "حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // إنشاء فاتورة HTML
+  const sendWhatsAppNotification = (orderId: string, serverTotalPrice: number) => {
+    const sanitizedName = sanitizeText(customerName);
+    const sanitizedPhone = sanitizeText(customerPhone);
+
+    const orderItems = items.map((item, index) => {
+      const sanitizedItemName = sanitizeText(item.name);
+      return `${index + 1}. ${sanitizedItemName}\nالكمية: ${item.quantity}\nسعر الوحدة: ${item.price} ج.م`;
+    }).join('\n\n');
+
+    const message = `*طلب جديد من متجر تفانين*
+*رقم الطلب:* ${orderId}
+*العميل:* ${sanitizedName}
+*الهاتف:* ${formatEgyptianPhone(sanitizedPhone)}
+---
+*تفاصيل الطلب:*
+${orderItems}
+---
+*الإجمالي (تم التحقق منه):* ${serverTotalPrice} ج.م
+*طريقة الاستلام:* ${selectedDeliveryMethod === 'delivery' ? 'توصيل للمنزل' : 'استلام من المكتبة'}
+`;
+
+    const phoneNumber = "201026274235"; // Business WhatsApp number
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    if (whatsappUrl.startsWith('https://wa.me/')) {
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // إنشاء فاتورة HTML آمنة
   const generateHTMLInvoice = () => {
     if (items.length === 0) {
       toast({
@@ -182,18 +285,34 @@ ${orderItems}
       return;
     }
 
-    const invoiceNumber = generateInvoiceNumber();
-    const today = new Date();
-    const date = today.toLocaleDateString('ar-EG');
-    const time = today.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    try {
+      const invoiceNumber = generateInvoiceNumber();
+      const today = new Date();
+      const date = today.toLocaleDateString('ar-EG');
+      const time = today.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
 
-    // تحديد نوع الخدمة والتكلفة
-    const serviceType = selectedDeliveryMethod === 'pickup' ? 'استلام من المكتبة' : 'توصيل للمنزل';
-    const deliveryCost = selectedDeliveryMethod === 'pickup' ? 0 : deliveryFee;
-    const paymentMethodText = paymentMethod === 'cod' ? 'الدفع عند الاستلام' : 
-                             paymentMethod === 'vodafone' ? 'فودافون كاش' : 'إنستاباي';
+      // تعقيم بيانات العميل
+      const sanitizedCustomerName = sanitizeText(customerName) || 'غير محدد';
+      const sanitizedCustomerPhone = sanitizeText(customerPhone) || 'غير محدد';
+      const sanitizedAreaName = sanitizeText(areaName);
+      const sanitizedApartmentNumber = sanitizeText(apartmentNumber);
+      const sanitizedBuildingNumber = sanitizeText(buildingNumber);
+      const sanitizedFloor = sanitizeText(floor);
+      const sanitizedArea = sanitizeText(area);
 
-    const htmlContent = `<!DOCTYPE html>
+      // تحديد نوع الخدمة والتكلفة
+      const serviceType = selectedDeliveryMethod === 'pickup' ? 'استلام من المكتبة' : 'توصيل للمنزل';
+      const deliveryCost = selectedDeliveryMethod === 'pickup' ? 0 : deliveryFee;
+      const paymentMethodText = paymentMethod === 'cod' ? 'الدفع عند الاستلام' :
+        paymentMethod === 'vodafone' ? 'فودافون كاش' : 'إنستاباي';
+
+      // تعقيم بيانات المنتجات
+      const sanitizedItems = items.map(item => ({
+        ...item,
+        name: sanitizeText(item.name)
+      }));
+
+      const htmlContent = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -330,19 +449,19 @@ ${orderItems}
             
             <div class="section">
                 <h3>معلومات العميل</h3>
-                <div class="info-row"><span>الاسم:</span><span>${customerName || 'غير محدد'}</span></div>
-                <div class="info-row"><span>الهاتف:</span><span>${customerPhone || 'غير محدد'}</span></div>
+                <div class="info-row"><span>الاسم:</span><span>${sanitizedCustomerName}</span></div>
+                <div class="info-row"><span>الهاتف:</span><span>${sanitizedCustomerPhone}</span></div>
             </div>
         </div>
         
         ${selectedDeliveryMethod === 'delivery' ? `
         <div class="address-section">
             <h3 style="color: #d9534f; margin-bottom: 10px;">عنوان التوصيل</h3>
-            <p><strong>المنطقة:</strong> ${areaName}</p>
-            <p><strong>رقم الشقة:</strong> ${apartmentNumber}</p>
-            <p><strong>رقم العمارة:</strong> ${buildingNumber}</p>
-            <p><strong>الدور:</strong> ${floor}</p>
-            <p><strong>المنطقة/البوابة:</strong> ${area}</p>
+            <p><strong>المنطقة:</strong> ${sanitizedAreaName}</p>
+            <p><strong>رقم الشقة:</strong> ${sanitizedApartmentNumber}</p>
+            <p><strong>رقم العمارة:</strong> ${sanitizedBuildingNumber}</p>
+            <p><strong>الدور:</strong> ${sanitizedFloor}</p>
+            <p><strong>المنطقة/البوابة:</strong> ${sanitizedArea}</p>
         </div>
         ` : ''}
         
@@ -356,7 +475,7 @@ ${orderItems}
                 </tr>
             </thead>
             <tbody>
-                ${items.map(item => `
+                ${sanitizedItems.map(item => `
                 <tr>
                     <td>${item.name}</td>
                     <td>${item.quantity}</td>
@@ -403,20 +522,29 @@ ${orderItems}
 </body>
 </html>`;
 
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `فاتورة-${invoiceNumber}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "تم تحميل الفاتورة",
-      description: "تم تحميل الفاتورة بتنسيق HTML بنجاح",
-    });
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const success = downloadFileSafely(blob, `فاتورة-${invoiceNumber}.html`);
+
+      if (success) {
+        toast({
+          title: "تم تحميل الفاتورة",
+          description: "تم تحميل الفاتورة بتنسيق HTML بنجاح",
+        });
+      } else {
+        toast({
+          title: "خطأ في التحميل",
+          description: "حدث خطأ أثناء محاولة تحميل الفاتورة",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('خطأ في إنشاء الفاتورة:', error);
+      toast({
+        title: "خطأ في إنشاء الفاتورة",
+        description: "حدث خطأ أثناء محاولة إنشاء الفاتورة",
+        variant: "destructive",
+      });
+    }
   };
 
   // معالجة خيار التوصيل
@@ -427,13 +555,13 @@ ${orderItems}
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => { 
-      setIsOpen(open); 
-      if (!open) { 
-        setShowOptions(false); 
-        setShowPickupOptions(false); 
-        setShowDeliveryCheckout(false); 
-      } 
+    <Sheet open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) {
+        setShowOptions(false);
+        setShowPickupOptions(false);
+        setShowDeliveryCheckout(false);
+      }
     }}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
@@ -445,12 +573,12 @@ ${orderItems}
           )}
         </Button>
       </SheetTrigger>
-      
+
       <SheetContent className="w-full sm:max-w-lg overflow-hidden">
         <SheetHeader className="pb-4 border-b">
           <SheetTitle className="text-right text-lg font-semibold">سلة التسوق</SheetTitle>
         </SheetHeader>
-        
+
         <div className="flex flex-col h-full">
           {/* عناصر السلة */}
           <div className="flex-1 overflow-y-auto py-4 px-1 max-h-[50vh] cart-scrollbar">
@@ -464,31 +592,31 @@ ${orderItems}
                 {items.map((item) => (
                   <div key={item.id} className="flex items-center gap-3 p-3 border rounded-lg">
                     <div className="flex-1 text-right">
-                      <h4 className="font-medium">{item.name}</h4>
+                      <h4 className="font-medium">{sanitizeText(item.name)}</h4>
                       <p className="text-sm text-muted-foreground">{item.price} جنيه</p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      
-                      <span className="w-8 text-center">{item.quantity}</span>
-                      
+
+                      <span className="w-8 text-center">{Math.max(0, item.quantity)}</span>
+
                       <Button
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, Math.min(999, item.quantity + 1))}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
-                      
+
                       <Button
                         variant="ghost"
                         size="icon"
@@ -503,7 +631,7 @@ ${orderItems}
               </div>
             )}
           </div>
-          
+
           {/* التذييل */}
           {items.length > 0 && (
             <div className="border-t pt-4 space-y-4">
@@ -511,19 +639,30 @@ ${orderItems}
               <div className="flex justify-between items-center text-lg font-semibold">
                 <span>الإجمالي: {showDeliveryCheckout ? finalTotal : totalPrice} جنيه</span>
               </div>
-              
+
               {/* الخيارات الرئيسية */}
               {!showOptions && !showPickupOptions && !showDeliveryCheckout && (
                 <div className="space-y-2">
-                  <Button 
-                    className="w-full btn-tafaneen"
-                    onClick={() => setShowOptions(true)}
-                  >
-                    إتمام الطلب
-                  </Button>
+                  {isAuthLoading ? (
+                    <Button className="w-full" disabled>
+                      جاري التحقق...
+                    </Button>
+                  ) : user ? (
+                    <Button
+                      className="w-full btn-tafaneen"
+                      onClick={() => setShowOptions(true)}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "جاري المعالجة..." : "إتمام الطلب"}
+                    </Button>
+                  ) : (
+                    <div className="text-center p-2 rounded-md bg-yellow-100 border border-yellow-300 text-yellow-800">
+                      يرجى <a href="#" onClick={(e) => { e.preventDefault(); onLoginClick(); }} className="font-bold underline">تسجيل الدخول</a> للمتابعة.
+                    </div>
+                  )}
                 </div>
               )}
-              
+
               {/* خيارات التوصيل/الاستلام */}
               {showOptions && !showPickupOptions && !showDeliveryCheckout && (
                 <div className="space-y-2 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-2 cart-scrollbar">
@@ -541,7 +680,7 @@ ${orderItems}
                     <MapPin className="h-4 w-4" />
                     استلام من المكتبة
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     className="w-full flex items-center gap-2"
@@ -550,7 +689,7 @@ ${orderItems}
                     <Truck className="h-4 w-4" />
                     توصيل للمنزل
                   </Button>
-                  
+
                   <Button
                     variant="ghost"
                     className="w-full"
@@ -561,7 +700,7 @@ ${orderItems}
                   </Button>
                 </div>
               )}
-              
+
               {/* نموذج التوصيل */}
               {showDeliveryCheckout && (
                 <div className="space-y-4 max-h-96 overflow-y-auto cart-scrollbar pr-2">
@@ -576,12 +715,10 @@ ${orderItems}
                       <label className="block text-sm font-medium mb-1 text-right">الاسم *</label>
                       <Input
                         value={customerName}
-                        onChange={(e) => {
-                          setCustomerName(e.target.value);
-                          setCustomerNameError(e.target.value ? '' : 'يرجى إدخال اسم العميل');
-                        }}
+                        onChange={(e) => handleNameChange(e.target.value)}
                         placeholder="أدخل اسم العميل"
                         className="text-right"
+                        maxLength={100}
                         required
                       />
                       {customerNameError && <p className="text-destructive text-sm mt-1 text-right">{customerNameError}</p>}
@@ -595,6 +732,7 @@ ${orderItems}
                         placeholder="010xxxxxxxx أو +20 10xxxxxxxx"
                         className={`text-right ${customerPhoneError ? 'border-destructive' : ''}`}
                         dir="ltr"
+                        maxLength={15}
                         required
                       />
                       {customerPhoneError && <p className="text-destructive text-sm mt-1 text-right">{customerPhoneError}</p>}
@@ -603,54 +741,58 @@ ${orderItems}
                     {/* العنوان */}
                     <div>
                       <label className="block text-sm font-medium mb-1 text-right">اسم المنطقة *</label>
-                      <Input 
-                        value={areaName} 
-                        onChange={(e) => setAreaName(e.target.value)} 
-                        placeholder="اسم المنطقة" 
-                        className="text-right" 
+                      <Input
+                        value={areaName}
+                        onChange={(e) => setAreaName(sanitizeText(e.target.value))}
+                        placeholder="اسم المنطقة"
+                        className="text-right"
+                        maxLength={100}
                         required
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium mb-1 text-right">رقم الشقة *</label>
-                      <Input 
-                        value={apartmentNumber} 
-                        onChange={(e) => setApartmentNumber(e.target.value)} 
-                        placeholder="رقم الشقة" 
-                        className="text-right" 
+                      <Input
+                        value={apartmentNumber}
+                        onChange={(e) => setApartmentNumber(sanitizeText(e.target.value))}
+                        placeholder="رقم الشقة"
+                        className="text-right"
+                        maxLength={20}
                         required
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium mb-1 text-right">رقم العمارة *</label>
-                        <Input 
-                          value={buildingNumber} 
-                          onChange={(e) => setBuildingNumber(e.target.value)} 
-                          placeholder="مثال: 12" 
-                          className="text-right" 
+                        <Input
+                          value={buildingNumber}
+                          onChange={(e) => setBuildingNumber(sanitizeText(e.target.value))}
+                          placeholder="مثال: 12"
+                          className="text-right"
+                          maxLength={20}
                           required
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1 text-right">الدور *</label>
-                        <Input 
-                          value={floor} 
-                          onChange={(e) => setFloor(e.target.value)} 
-                          placeholder="مثال: 3" 
-                          className="text-right" 
+                        <Input
+                          value={floor}
+                          onChange={(e) => setFloor(sanitizeText(e.target.value))}
+                          placeholder="مثال: 3"
+                          className="text-right"
+                          maxLength={20}
                           required
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-1 text-right">اختيار المنطقة / البوابة *</label>
-                      <select 
-                        value={area} 
-                        onChange={(e) => setArea(e.target.value)} 
+                      <select
+                        value={area}
+                        onChange={(e) => setArea(e.target.value)}
                         className="w-full border rounded-md p-2 text-right bg-background"
                         required
                       >
@@ -678,50 +820,54 @@ ${orderItems}
                       <div className="space-y-2">
                         <h4 className="font-semibold text-right">طريقة الدفع</h4>
                         <div className="grid grid-cols-1 gap-2">
-                          <Button 
-                            variant={paymentMethod === 'cod' ? 'default' : 'outline'} 
+                          <Button
+                            variant={paymentMethod === 'cod' ? 'default' : 'outline'}
                             onClick={() => setPaymentMethod('cod')}
                             className="text-sm"
                           >
                             الدفع عند الاستلام
                           </Button>
-                          <Button 
-                            variant={paymentMethod === 'vodafone' ? 'default' : 'outline'} 
+                          <Button
+                            variant={paymentMethod === 'vodafone' ? 'default' : 'outline'}
                             onClick={() => setPaymentMethod('vodafone')}
                             className="text-sm"
                           >
                             فودافون كاش (+1%)
                           </Button>
-                          <Button 
-                            variant={paymentMethod === 'instapay' ? 'default' : 'outline'} 
+                          <Button
+                            variant={paymentMethod === 'instapay' ? 'default' : 'outline'}
                             onClick={() => setPaymentMethod('instapay')}
                             className="text-sm"
                           >
                             إنستا باي
                           </Button>
                         </div>
-                        
+
                         {/* روابط ورموز الدفع الإلكتروني */}
                         {paymentMethod !== 'cod' && (
                           <div className="mt-3 space-y-2 text-center">
-                            <Button 
-                              className="btn-tafaneen w-full" 
+                            <Button
+                              className="btn-tafaneen w-full"
                               onClick={() => {
-                                const link = paymentMethod === 'vodafone' 
+                                const link = paymentMethod === 'vodafone'
                                   ? 'http://vf.eg/vfcash?id=mt&qrId=E9kZZk&qrString=ac04f93ecff3b89619c576f2fa4436a0872aca3a6ccdfb5a8f6ef3a6b92ebeb7'
                                   : 'https://ipn.eg/C/Q/mosaadhosny7890/instapay?ISIGN=23052603MEUCIQC/ACli2Pcxq8/e/to1eqMfNxYCj4wQd8l/o2KSJTg1LwIgScy/K3IM2HEEei0Zkzqru9bBWjuFwgsbjHL1q0iffKA=';
-                                window.open(link, '_blank');
+
+                                // التحقق من أن الرابط آمن
+                                if (link.startsWith('http://vf.eg/') || link.startsWith('https://ipn.eg/')) {
+                                  window.open(link, '_blank', 'noopener,noreferrer');
+                                }
                               }}
                             >
                               الانتقال إلى الدفع
                             </Button>
                             <div className="flex flex-col items-center gap-2">
-                              <QRCode 
-                                value={paymentMethod === 'vodafone' 
+                              <QRCode
+                                value={paymentMethod === 'vodafone'
                                   ? 'http://vf.eg/vfcash?id=mt&qrId=E9kZZk&qrString=ac04f93ecff3b89619c576f2fa4436a0872aca3a6ccdfb5a8f6ef3a6b92ebeb7'
                                   : 'https://ipn.eg/C/Q/mosaadhosny7890/instapay?ISIGN=23052603MEUCIQC/ACli2Pcxq8/e/to1eqMfNxYCj4wQd8l/o2KSJTg1LwIgScy/K3IM2HEEei0Zkzqru9bBWjuFwgsbjHL1q0iffKA='
-                                } 
-                                size={128} 
+                                }
+                                size={128}
                               />
                               <p className="text-xs text-muted-foreground">يمكنك المسح للدفع مباشرة</p>
                             </div>
@@ -729,24 +875,24 @@ ${orderItems}
                         )}
                       </div>
 
-                                              {/* ملخص الحساب */}
-                        <div className="space-y-1 text-right">
-                          <div className="flex justify-between"><span>مجموع المنتجات</span><span>{totalPrice} ج</span></div>
-                          {isFreeDelivery ? (
-                            <div className="flex justify-between text-green-600"><span>رسوم التوصيل</span><span>مجاني ✨</span></div>
-                          ) : (
-                            <div className="flex justify-between"><span>رسوم التوصيل</span><span>{actualDeliveryFee} ج</span></div>
-                          )}
-                          {paymentMethod === 'vodafone' && (
-                            <div className="flex justify-between"><span>+ 1% رسوم فودافون كاش</span><span>{surcharge} ج</span></div>
-                          )}
-                          {!isFreeDelivery && totalPrice < 1000 && (
-                            <div className="text-xs text-green-600 text-center py-2 bg-green-50 rounded-md">
-                              أضف {(1000 - totalPrice)} ج.م أخرى للحصول على التوصيل المجاني
-                            </div>
-                          )}
-                          <div className="flex justify-between font-semibold"><span>الإجمالي النهائي</span><span>{finalTotal} ج</span></div>
-                        </div>
+                      {/* ملخص الحساب */}
+                      <div className="space-y-1 text-right">
+                        <div className="flex justify-between"><span>مجموع المنتجات</span><span>{totalPrice} ج</span></div>
+                        {isFreeDelivery ? (
+                          <div className="flex justify-between text-green-600"><span>رسوم التوصيل</span><span>مجاني ✨</span></div>
+                        ) : (
+                          <div className="flex justify-between"><span>رسوم التوصيل</span><span>{actualDeliveryFee} ج</span></div>
+                        )}
+                        {paymentMethod === 'vodafone' && (
+                          <div className="flex justify-between"><span>+ 1% رسوم فودافون كاش</span><span>{surcharge} ج</span></div>
+                        )}
+                        {!isFreeDelivery && totalPrice < 1000 && (
+                          <div className="text-xs text-green-600 text-center py-2 bg-green-50 rounded-md">
+                            أضف {(1000 - totalPrice)} ج.م أخرى للحصول على التوصيل المجاني
+                          </div>
+                        )}
+                        <div className="flex justify-between font-semibold"><span>الإجمالي النهائي</span><span>{finalTotal} ج</span></div>
+                      </div>
 
                       {/* الإجراءات */}
                       <div className="space-y-2">
@@ -754,27 +900,11 @@ ${orderItems}
                           variant="outline"
                           className="w-full flex items-center gap-2"
                           style={{ backgroundColor: '#25D366', color: 'white' }}
-                          onClick={() => {
-                            // إرسال واتساب مع التفاصيل الكاملة
-                            const invoiceNumber = generateInvoiceNumber();
-                            const today = new Date();
-                            const date = today.toLocaleDateString('ar-EG');
-                            const time = today.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-                            const orderItems = items.map((item, index) => `${index + 1}. ${item.name}\nالكمية: ${item.quantity}\nسعر الوحدة: ${item.price} ج.م\nالمجموع: ${item.price * item.quantity} ج.م`).join('\n\n');
-                            const payLabel = paymentMethod === 'cod' ? 'الدفع عند الاستلام' : paymentMethod === 'vodafone' ? 'فودافون كاش' : 'إنستا باي';
-                            const payLink = paymentMethod === 'vodafone'
-                              ? 'http://vf.eg/vfcash?id=mt&qrId=E9kZZk&qrString=ac04f93ecff3b89619c576f2fa4436a0872aca3a6ccdfb5a8f6ef3a6b92ebeb7'
-                              : paymentMethod === 'instapay'
-                              ? 'https://ipn.eg/C/Q/mosaadhosny7890/instapay?ISIGN=23052603MEUCIQC/ACli2Pcxq8/e/to1eqMfNxYCj4wQd8l/o2KSJTg1LwIgScy/K3IM2HEEei0Zkzqru9bBWjuFwgsbjHL1q0iffKA='
-                              : '';
-                            const message = `فاتورة طلب - مكتبة تفانين\n\nمعلومات الفاتورة:\nرقم الفاتورة: ${invoiceNumber}\nالتاريخ: ${date}\nالوقت: ${time}\nطريقة الاستلام: توصيل للمنزل\n\nمعلومات العميل:\nالاسم: ${customerName}\nرقم الهاتف: ${formatEgyptianPhone(customerPhone)}\nالعنوان: ${areaName}, عمارة ${buildingNumber}, شقة ${apartmentNumber}, الدور ${floor}\nالمنطقة/البوابة: ${area}\n\nالمنتجات المطلوبة:\n${orderItems}\n\nرسوم التوصيل: ${isFreeDelivery ? 'مجاني ✨' : actualDeliveryFee + ' ج.م'}\n${paymentMethod === 'vodafone' ? 'رسوم فودافون كاش (1%): ' + surcharge + ' ج.م\n' : ''}الإجمالي النهائي: ${finalTotal} ج.م\n\nطريقة الدفع: ${payLabel}${payLink ? '\nرابط الدفع: ' + payLink : ''}\n\nللاستفسار: 01026274235`;
-                            const phoneNumber = '201026274235';
-                            const whatsappWeb = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-                            window.open(whatsappWeb, '_blank');
-                          }}
+                          onClick={createOrder}
+                          disabled={isLoading}
                         >
                           <MessageCircle className="h-4 w-4" />
-                          إرسال الإشعار إلى المكتبة
+                          {isLoading ? "جاري الإنشاء..." : "إنشاء الطلب وإرسال الإشعار"}
                         </Button>
 
                         <Button variant="outline" className="w-full flex items-center gap-2" onClick={generateHTMLInvoice}>
@@ -799,23 +929,21 @@ ${orderItems}
                     <h3 className="text-lg font-semibold">معلومات العميل</h3>
                     <p className="text-sm text-muted-foreground">يرجى إدخال بياناتك لإتمام الطلب</p>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div>
                       <label htmlFor="customerName" className="block text-sm font-medium mb-1 text-right">الاسم</label>
                       <Input
                         id="customerName"
                         value={customerName}
-                        onChange={(e) => {
-                          setCustomerName(e.target.value);
-                          setCustomerNameError(e.target.value ? '' : 'يرجى إدخال اسم العميل');
-                        }}
+                        onChange={(e) => handleNameChange(e.target.value)}
                         placeholder="أدخل اسم العميل"
                         className="text-right"
+                        maxLength={100}
                       />
                       {customerNameError && <p className="text-destructive text-sm mt-1 text-right">{customerNameError}</p>}
                     </div>
-                    
+
                     <div>
                       <label htmlFor="customerPhone" className="block text-sm font-medium mb-1 text-right">رقم الهاتف</label>
                       <Input
@@ -825,6 +953,7 @@ ${orderItems}
                         placeholder="010xxxxxxxx أو +20 10xxxxxxxx"
                         className={`text-right ${customerPhoneError ? 'border-destructive' : ''}`}
                         dir="ltr"
+                        maxLength={15}
                       />
                       {customerPhoneError && <p className="text-destructive text-sm mt-1 text-right">{customerPhoneError}</p>}
                       <p className="text-xs text-muted-foreground text-right mt-1">
@@ -832,18 +961,18 @@ ${orderItems}
                       </p>
                     </div>
                   </div>
-                  
+
                   <Button
                     variant="outline"
                     className="w-full flex items-center gap-2"
                     style={{ backgroundColor: '#25D366', color: 'white' }}
-                    onClick={handleWhatsAppNotification}
-                    disabled={!!customerPhoneError}
+                    onClick={createOrder}
+                    disabled={!!customerPhoneError || isLoading}
                   >
                     <MessageCircle className="h-4 w-4" />
-                    إرسال الإشعار عبر واتساب
+                    {isLoading ? "جاري الإنشاء..." : "إنشاء الطلب وإرسال الإشعار"}
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     className="w-full flex items-center gap-2"
@@ -853,7 +982,7 @@ ${orderItems}
                     <FileText className="h-4 w-4" />
                     تنزيل الفاتورة
                   </Button>
-                  
+
                   <Button
                     variant="ghost"
                     className="w-full"

@@ -43,7 +43,7 @@
     /* Tafaneen Specific Colors */
     --book-category: 0 84% 55%; /* Red for book categories */
     --stationery-category: 48 95% 60%; /* Yellow for stationery */
-    --children-category: 15 84% 60%; /* Orange for children's books */
+    --children-category: 15 84% 60%; /* Orange for children\'s books */
     --whatsapp: 142 70% 49%; /* WhatsApp green */
     
     /* Gradients */
@@ -63,7 +63,7 @@
 
     --radius: 0.75rem;
   }
-
+}
   .dark {
     --background: 215 28% 17%;
     --foreground: 210 40% 98%;
@@ -99,17 +99,7 @@
     direction: rtl;
   }
 
-  /* Base styling */
-  * {
-    @apply border-border;
-  }
 
-  body {
-    @apply bg-background text-foreground;
-    font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    direction: rtl;
-    text-align: right;
-  }
 
   /* Arabic Typography */
   .arabic-text {
@@ -143,7 +133,6 @@
     --invoice-border-light: 193 213 229; /* #c1d5e5 */
     --invoice-accent: 14 138 62; /* #0e8a3e */
   }
-}
 
 @layer components {
   /* Button Variants */
@@ -288,6 +277,56 @@
   .slide-in-right {
     animation: slideInRight 0.5s ease-out;
   }
+
+  /* Header Styles */
+  .header-tafaneen {
+    @apply sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm;
+  }
+
+  .search-input {
+    @apply pr-10 rounded-xl border-2 focus:border-primary;
+  }
+
+  .nav-link {
+    @apply text-foreground hover:text-primary transition-colors;
+  }
+
+  .nav-link-active {
+    @apply text-primary border-primary;
+  }
+
+  /* Enhanced Search Styles */
+  .search-results-dropdown {
+    @apply absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto;
+  }
+
+  .search-result-item {
+    @apply w-full p-3 hover:bg-gray-50 transition-colors text-right flex items-center gap-3 rtl:space-x-reverse;
+  }
+
+  .search-result-image {
+    @apply w-12 h-12 object-cover rounded-md border;
+  }
+
+  .search-result-content {
+    @apply text-sm text-right flex-1 min-w-0;
+  }
+
+  .search-result-name {
+    @apply font-medium text-foreground truncate;
+  }
+
+  .search-result-category {
+    @apply text-xs text-muted-foreground truncate mt-1;
+  }
+
+  .search-loading {
+    @apply p-4 text-center text-muted-foreground;
+  }
+
+  .search-no-results {
+    @apply p-4 text-center text-muted-foreground;
+  }
 }
 
 @layer utilities {
@@ -299,7 +338,6 @@
   .margin-start-auto {
     margin-inline-start: auto;
   }
-
   .margin-end-auto {
     margin-inline-end: auto;
   }
@@ -311,54 +349,44 @@
   .text-end {
     text-align: end;
   }
-}
 
-/* Keyframes */
-@keyframes bounceIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  70% {
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+  /* Keyframes */
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
-  body {
-    @apply bg-background text-foreground;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 }

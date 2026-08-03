@@ -1,104 +1,329 @@
-# Welcome to your Lovable project
+# 🎨 تفانين - نظام إدارة الطلبات للقرطاسية
 
-## Project info
+<div dir="rtl">
 
-**URL**: https://lovable.dev/projects/7aec8b54-b785-4515-ae86-bca1479d557f
+## 📋 نظرة عامة
 
-## Recent Updates
+**تفانين** هو نظام إلكتروني متكامل لإدارة الطلبات والمبيعات لمتاجر القرطاسية والمكتبات. تم بناء المشروع باستخدام أحدث تقنيات الويب لتوفير تجربة مستخدم سلسة وسريعة.
 
-### Resend API Integration & Egyptian Phone Validation
+**رابط المشروع**: [Lovable Project](https://lovable.dev/projects/7aec8b54-b785-4515-ae86-bca1479d557f)
 
-This project has been updated with the following features:
+---
 
-1. **Resend API Integration**
-   - Integrated Resend API with key: `re_7YowBuAL_C9yRZ8HkfUyKWEFERvqYU3k7`
-   - Updated email service to support SMS simulation
-   - Proper error handling and authentication
+## ✨ المميزات الرئيسية
 
-2. **Egyptian Phone Number Validation**
-   - Comprehensive validation for Egyptian phone numbers
-   - Supports mobile numbers: 010, 011, 012, 015 (11 digits total)
-   - Supports landline numbers with area codes (9-11 digits total)
-   - International format support: +20 followed by local number
-   - Real-time validation with user-friendly error messages
+### 🛒 إدارة المنتجات والطلبات
+- **كتالوج شامل**: عرض المنتجات بتصنيفات متعددة (نوت بوك، أقلام، أدوات هندسية، تلوين، كتب، استيكرات)
+- **نظام سلة التسوق**: إضافة وإزالة المنتجات مع حساب تلقائي للإجمالي
+- **إدارة الطلبات**: متابعة حالة الطلبات من الإنشاء حتى التسليم
+- **بحث وفلترة**: البحث السريع عن المنتجات مع إمكانية الفلترة حسب الفئات
 
-3. **Form Modifications**
-   - Removed all email input fields from authentication forms
-   - Updated cart customer information form
-   - Phone-based authentication system
-   - Updated database schema to remove email dependency
+### 📱 واجهة مستخدم عصرية
+- **تصميم متجاوب**: يعمل بكفاءة على جميع الأجهزة (موبايل، تابلت، ديسكتوب)
+- **عرض الفئات الذكي**: 
+  - عرض 4 أقسام رئيسية على الصفحة الرئيسية
+  - تخطيط شبكي 2×2 على الموبايل
+  - عرض أفقي (صف واحد) على الديسكتوب
+- **تأثيرات بصرية**: أشكال عضوية مع تأثيرات Glassmorphism
+- **تجربة تفاعلية**: رسوم متحركة سلسة عند التفاعل
 
-4. **Validation Features**
-   - `validateEgyptianPhone()` - Validates Egyptian phone numbers
-   - `formatEgyptianPhone()` - Formats phone numbers for display
-   - `normalizeEgyptianPhone()` - Normalizes phone numbers for storage
-   - Real-time validation feedback in forms
-   - Proper error handling and user guidance
+### 🔐 نظام المصادقة والأمان
+- **التحقق برقم الهاتف**: نظام مصادقة قائم على أرقام الهواتف المصرية
+- **التحقق الشامل**: دعم جميع أرقام الهواتف المصرية:
+  - أرقام الموبايل: 010، 011، 012، 015 (11 رقم)
+  - أرقام الخطوط الأرضية مع مفاتيح المحافظات (9-11 رقم)
+  - الصيغة الدولية: +20 متبوعة بالرقم المحلي
+- **رسائل خطأ واضحة**: إرشادات فورية للمستخدم
 
-## How can I edit this code?
+### 📊 لوحة التحكم والتقارير
+- **لوحة تحكم إدارية**: متابعة المبيعات والطلبات
+- **تقارير مفصلة**: إحصائيات المبيعات والمنتجات الأكثر مبيعاً
+- **إدارة المخزون**: متابعة كميات المنتجات المتوفرة
 
-There are several ways of editing your application.
+### 🖨️ طباعة وتصدير البيانات
+- **فواتير احترافية**: طباعة فواتير منسقة للعملاء
+- **تصدير البيانات**: تصدير التقارير بصيغ مختلفة
+- **رموز QR**: إنشاء رموز QR للمنتجات والطلبات
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7aec8b54-b785-4515-ae86-bca1479d557f) and start prompting.
+## 🛠️ التقنيات المستخدمة
 
-Changes made via Lovable will be committed automatically to this repo.
+### Frontend Framework
+- **React 18** - مكتبة JavaScript لبناء واجهات المستخدم
+- **TypeScript** - لغة برمجة قوية مع دعم الأنواع
+- **Vite** - أداة بناء سريعة للغاية
 
-**Use your preferred IDE**
+### UI/UX Libraries
+- **Tailwind CSS** - إطار عمل CSS الأداتي
+- **shadcn/ui** - مكونات UI قابلة للتخصيص
+- **Radix UI** - مكونات UI يمكن الوصول إليها
+- **Lucide React** - مكتبة أيقونات عصرية
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### State Management & Data Fetching
+- **React Query (@tanstack/react-query)** - إدارة حالة الخادم
+- **React Hook Form** - إدارة النماذج
+- **Zod** - التحقق من صحة البيانات
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Backend & Database
+- **Supabase** - قاعدة بيانات PostgreSQL مع مصادقة وتخزين
+- **Axios** - عميل HTTP لطلبات API
 
-Follow these steps:
+### Additional Tools
+- **React Router DOM** - التنقل بين الصفحات
+- **Date-fns** - التعامل مع التواريخ
+- **Recharts** - رسوم بيانية تفاعلية
+- **html2canvas & jsPDF** - تحويل HTML إلى PDF
+- **React QR Code** - إنشاء رموز QR
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### Testing
+- **Vitest** - إطار عمل للاختبارات الوحدوية
+- **Playwright** - اختبارات E2E
+- **Testing Library** - اختبار مكونات React
+
+---
+
+## 🚀 التثبيت والتشغيل
+
+### المتطلبات الأساسية
+- **Node.js** (الإصدار 16 أو أحدث)
+- **npm** أو **yarn**
+
+### خطوات التثبيت
+
+```bash
+# 1. استنساخ المشروع
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. الانتقال إلى مجلد المشروع
+cd tafaneen-order-bloom-main
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. تثبيت الحزم المطلوبة
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. إنشاء ملف البيئة
+cp .env.example .env
+
+# 5. تشغيل المشروع في وضع التطوير
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+المشروع سيعمل على: `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### أوامر متاحة
 
-**Use GitHub Codespaces**
+```bash
+# تشغيل المشروع للتطوير
+npm run dev
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# بناء المشروع للإنتاج
+npm run build
 
-## What technologies are used for this project?
+# بناء المشروع لبيئة التطوير
+npm run build:dev
 
-This project is built with:
+# معاينة النسخة المبنية
+npm run preview
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# تشغيل الاختبارات
+npm run test
 
-## How can I deploy this project?
+# تشغيل اختبارات E2E
+npm run test:e2e
 
-Simply open [Lovable](https://lovable.dev/projects/7aec8b54-b785-4515-ae86-bca1479d557f) and click on Share -> Publish.
+# فحص الكود
+npm run lint
+```
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## 📁 بنية المشروع
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```
+tafaneen-order-bloom-main/
+├── public/                      # الملفات الثابتة
+│   ├── assets/                 # صور المنتجات
+│   ├── tafaneen-logo.jpg      # شعار المتجر
+│   └── robots.txt             # ملف robots
+│
+├── src/
+│   ├── components/            # مكونات React القابلة لإعادة الاستخدام
+│   │   ├── Categories.tsx    # عرض الفئات (محدّث)
+│   │   ├── Header.tsx        # رأس الصفحة
+│   │   ├── Footer.tsx        # تذييل الصفحة
+│   │   └── ...               # مكونات أخرى
+│   │
+│   ├── pages/                 # صفحات التطبيق
+│   │   ├── Index.tsx         # الصفحة الرئيسية
+│   │   ├── Categories.tsx    # صفحة جميع الفئات
+│   │   ├── Cart.tsx          # سلة التسوق
+│   │   └── ...               # صفحات أخرى
+│   │
+│   ├── contexts/              # React Contexts للحالة العامة
+│   ├── hooks/                 # Custom React Hooks
+│   ├── utils/                 # دوال مساعدة
+│   ├── lib/                   # مكتبات وإعدادات
+│   ├── data/                  # بيانات ثابتة
+│   │
+│   ├── App.tsx               # المكون الرئيسي
+│   ├── main.tsx              # نقطة الدخول
+│   └── index.css             # ملف الأنماط الرئيسي
+│
+├── .env.example               # مثال لملف المتغيرات البيئية
+├── package.json              # معلومات المشروع والحزم
+├── tsconfig.json             # إعدادات TypeScript
+├── vite.config.ts            # إعدادات Vite
+├── tailwind.config.ts        # إعدادات Tailwind CSS
+└── README.md                 # هذا الملف
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+---
+
+## 🔄 التحديثات الأخيرة
+
+### تحديث نظام عرض الفئات (ديسمبر 2024)
+#### ما تم تنفيذه:
+✅ **تغيير العنوان**: من "الفئات المميزة" إلى "تسوق حسب الفئة"  
+✅ **عرض محدود**: عرض 4 أقسام رئيسية فقط على الصفحة الرئيسية  
+✅ **تصميم متجاوب محسّن**:
+- **الموبايل**: شبكة 2×2 (قسمين فوق وقسمين تحت)
+- **الديسكتوب**: صف أفقي واحد (4 أقسام جنب بعض)
+✅ **زر "عرض الكل"**: للانتقال إلى صفحة جميع الفئات  
+✅ **تحسين UX**: أحجام أكبر وأكثر وضوحاً للأقسام
+
+### التحقق من أرقام الهواتف المصرية
+✅ دعم كامل لجميع صيغ الأرقام المصرية  
+✅ دوال مساعدة:
+- `validateEgyptianPhone()` - التحقق من صحة الرقم
+- `formatEgyptianPhone()` - تنسيق الرقم للعرض
+- `normalizeEgyptianPhone()` - تطبيع الرقم للتخزين
+
+### تحديثات النماذج
+✅ إزالة حقول البريد الإلكتروني من جميع النماذج  
+✅ نظام مصادقة قائم على رقم الهاتف فقط  
+✅ تحديث قاعدة البيانات لإزالة اعتماد البريد الإلكتروني
+
+---
+
+## 🎯 الفئات المتوفرة
+
+1. **نوت بوك** - دفاتر بأحجام وأنواع مختلفة
+2. **كتب** - كتب دراسية ومراجع
+3. **أدوات هندسية** - مساطر، فرجار، منقلة
+4. **تلوين** - ألوان خشبية، فلوماستر، شمع
+5. **استيكرات** - ملصقات بتصاميم مختلفة
+6. **أقلام** - أقلام حبر، رصاص، جاف
+
+---
+
+## 💻 طرق التعديل والتطوير
+
+### 1️⃣ استخدام Lovable
+قم بزيارة [رابط المشروع](https://lovable.dev/projects/7aec8b54-b785-4515-ae86-bca1479d557f) وابدأ في إعطاء الأوامر. التغييرات ستُحفظ تلقائياً في المستودع.
+
+### 2️⃣ استخدام محرر الأكواد المفضل لديك
+يمكنك استنساخ المشروع والعمل عليه محلياً باستخدام VS Code أو أي محرر آخر. التغييرات المدفوعة ستنعكس في Lovable.
+
+### 3️⃣ التعديل مباشرة في GitHub
+- انتقل إلى الملف المطلوب
+- اضغط على زر "Edit" (أيقونة القلم)
+- قم بالتعديلات واحفظها
+
+### 4️⃣ استخدام GitHub Codespaces
+- اذهب إلى الصفحة الرئيسية للمستودع
+- اضغط على زر "Code" (الزر الأخضر)
+- اختر تبويب "Codespaces"
+- اضغط على "New codespace"
+
+---
+
+## 🌐 النشر والاستضافة
+
+### النشر عبر Lovable
+1. افتح [Lovable](https://lovable.dev/projects/7aec8b54-b785-4515-ae86-bca1479d557f)
+2. اضغط على **Share → Publish**
+
+### ربط نطاق مخصص
+يمكنك ربط نطاقك الخاص بالمشروع:
+1. اذهب إلى **Project > Settings > Domains**
+2. اضغط على **Connect Domain**
+3. اتبع التعليمات
+
+📖 **اقرأ المزيد**: [إعداد نطاق مخصص](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+---
+
+## 📚 ملفات توثيق إضافية
+
+- **`AI_HANDOVER.md`** - دليل شامل للذكاء الاصطناعي للعمل على المشروع
+- **`PRODUCTS_MANAGEMENT_GUIDE.md`** - دليل إدارة المنتجات
+- **`BANNER_DESIGN_SPECS.md`** - مواصفات تصميم البانرات
+- **`TROUBLESHOOTING_GUIDE.md`** - دليل حل المشكلات
+- **`README_DETAILED.md`** - شرح تفصيلي إضافي
+
+---
+
+## 🤝 المساهمة
+
+نرحب بمساهماتكم! إذا كان لديك اقتراحات أو تحسينات:
+
+1. قم بعمل Fork للمشروع
+2. أنشئ فرع للميزة الجديدة (`git checkout -b feature/AmazingFeature`)
+3. قم بالتعديلات والالتزام (`git commit -m 'Add some AmazingFeature'`)
+4. ادفع إلى الفرع (`git push origin feature/AmazingFeature`)
+5. افتح Pull Request
+
+---
+
+## 🐛 الإبلاغ عن المشاكل
+
+إذا واجهت أي مشكلة أو خطأ:
+- استخدم أمر `/reportbug` في واجهة المشروع
+- أو افتح Issue في GitHub مع وصف تفصيلي للمشكلة
+
+---
+
+## 📄 الترخيص
+
+هذا المشروع ملكية خاصة. جميع الحقوق محفوظة.
+
+---
+
+## 📞 التواصل
+
+للاستفسارات والدعم:
+- **الموقع**: [Tafaneen Store](https://lovable.dev/projects/7aec8b54-b785-4515-ae86-bca1479d557f)
+- **GitHub**: [المستودع](https://github.com/your-repo)
+
+---
+
+## 🎉 شكر خاص
+
+شكراً لجميع المساهمين والمطورين الذين عملوا على تحسين هذا المشروع.
+
+---
+
+## 🛠️ التقنيات المستخدمة (Tech Stack)
+
+- **React 18** + **TypeScript** — بناء الواجهة
+- **Vite** — أداة البناء والتطوير
+- **Tailwind CSS** + **shadcn/ui** — التصميم والمكونات
+- **Supabase** — قاعدة البيانات والمصادقة والتخزين
+- **React Query / Zustand** — إدارة الحالة وجلب البيانات
+- **Playwright** — اختبارات E2E
+
+## 🌐 الحالة / Live Demo
+
+> **حالياً: التشغيل المحلي فقط (local/demo only)** — المشروع مبني على Supabase كخادم خلفي سحابي، ولم يُنشر بعد على استضافة ثابتة (Vercel / Netlify). بما أن الواجهة مبنية بـ React/Vite فهو قابل للنشر كموقع ثابت عند الحاجة.
+
+---
+
+<div align="center">
+
+**صُنع بـ ❤️ لمتاجر القرطاسية العربية**
+
+⭐ إذا أعجبك المشروع، لا تنسَ إعطاءه نجمة على GitHub!
+
+</div>
+
+</div>

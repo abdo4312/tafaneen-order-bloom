@@ -1,12 +1,20 @@
+
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Phone } from "lucide-react";
-import { validateEgyptianPhone } from "@/utils/phoneValidation";
+// Importing a Google icon from a hypothetical icon library
+// If you don't have one, you can use an SVG or another icon solution
+const GoogleIcon = () => (
+    <svg className="mr-2 h-4 w-4" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M44.5 24.3H42.7V24.3C42.7 23.3 42.6 22.4 42.4 21.5H24.5V28.5H35.3C34.7 31.4 32.7 33.8 29.8 35.3V40.2H36.2C41.2 35.8 44.5 29.8 44.5 24.3Z" fill="#4285F4"/>
+      <path d="M24.5 45C30.9 45 36.2 42.7 40.2 38.6L34.1 34.3C31.9 35.8 28.6 36.8 24.5 36.8C18.6 36.8 13.7 32.9 11.9 27.8H5.4V32.4C8.4 39.9 15.9 45 24.5 45Z" fill="#34A853"/>
+      <path d="M11.9 21.2C11.2 19.3 11.2 17.2 11.9 15.3V10.7H5.4C3.1 15.8 3.1 21.7 5.4 26.8L11.9 21.2Z" fill="#FBBC05"/>
+      <path d="M24.5 9.8C27.7 9.8 30.6 11.1 32.9 13.1L38.4 7.6C34.2 3.8 29.5 1 24.5 1C15.9 1 8.4 6.1 5.4 13.6L11.9 18.2C13.7 13.1 18.6 9.8 24.5 9.8Z" fill="#EA4335"/>
+    </svg>
+  );
+
 
 interface AuthDialogProps {
   open: boolean;
@@ -14,137 +22,39 @@ interface AuthDialogProps {
 }
 
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { loginWithGoogle } = useAuth();
 
-  const handlePhoneChange = (value: string) => {
-    setPhone(value);
-    setPhoneError("");
-    
-    if (value.trim()) {
-      const validation = validateEgyptianPhone(value);
-      if (!validation.isValid) {
-        setPhoneError(validation.errorMessage || "رقم الهاتف غير صحيح");
-      }
-    }
-  };
-  const handleLogin = async () => {
-    if (!name.trim() || !phone.trim()) {
-      toast({
-        title: "خطأ",
-        description: "يرجى إدخال جميع البيانات المطلوبة",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // التحقق من صحة رقم الهاتف المصري
-    const phoneValidation = validateEgyptianPhone(phone);
-    if (!phoneValidation.isValid) {
-      toast({
-        title: "خطأ",
-        description: phoneValidation.errorMessage || "يرجى إدخال رقم هاتف مصري صحيح",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
-
-    try {
-      const result = await login(name, phone);
-
-      if (result.success) {
-        toast({
-          title: "مرحباً بك!",
-          description: `تم تسجيل الدخول بنجاح، أهلاً ${name}`,
-        });
-        onOpenChange(false);
-        // إعادة تعيين النموذج
-        setName("");
-        setPhone("");
-        setPhoneError("");
-      } else {
-        toast({
-          title: "خطأ",
-          description: result.error || "فشل في تسجيل الدخول",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+    // Save the fact that we're trying to log in from the cart
+    localStorage.setItem('post-login-action', 'open-cart');
+    const { error } = await loginWithGoogle();
+    if (error) {
       toast({
         title: "خطأ",
-        description: "فشل في تسجيل الدخول",
+        description: error || "فشل تسجيل الدخول باستخدام Google",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+    // The dialog will close automatically upon successful Supabase redirect,
+    // so we don't need to call onOpenChange(false) here.
+    setIsLoading(false);
   };
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" dir="rtl">
-        <DialogHeader className="text-center">
-          <DialogTitle className="text-2xl font-bold text-gradient">
-            تسجيل الدخول
-          </DialogTitle>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>تسجيل الدخول أو إنشاء حساب</DialogTitle>
+          <DialogDescription>
+            استخدم حساب Google الخاص بك للمتابعة.
+          </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-6 py-4">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-right">الاسم</Label>
-              <div className="relative">
-                <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="أدخل اسمك"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pr-10"
-                  dir="rtl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-right">
-                رقم الهاتف
-              </Label>
-              <div className="relative">
-                <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="010xxxxxxxx أو +20 10xxxxxxxx"
-                  value={phone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  className={`pr-10 ${phoneError ? 'border-destructive' : ''}`}
-                  dir="ltr"
-                />
-              </div>
-              {phoneError && (
-                <p className="text-xs text-destructive text-right">{phoneError}</p>
-              )}
-              <p className="text-xs text-muted-foreground text-right">
-                رقم هاتف مصري صحيح (موبايل أو أرضي)
-              </p>
-            </div>
-          </div>
-
-          <Button 
-            onClick={handleLogin} 
-            disabled={isLoading || !!phoneError}
-            className="w-full btn-tafaneen"
-          >
-            {isLoading ? "جاري التسجيل..." : "تسجيل الدخول"}
+        <div className="space-y-4 pt-4">
+          <Button onClick={handleGoogleLogin} disabled={isLoading} className="w-full">
+            {isLoading ? "جاري التحميل..." : <><GoogleIcon /> متابعة باستخدام Google</>}
           </Button>
         </div>
       </DialogContent>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { BottomNav } from "@/components/BottomNav";
 import { OffersCarousel } from "@/components/OffersCarousel";
 
 const allOffers = [
@@ -14,34 +14,53 @@ const allOffers = [
 const OffersPage = () => {
   useEffect(() => {
     document.title = "العروض الخاصة | تفانين";
-    const desc = "اطلع على جميع العروض والخصومات الحالية لدى تفانين.";
-    let meta = document.querySelector('meta[name="description"]');
-    if (!meta) { meta = document.createElement('meta'); meta.setAttribute('name','description'); document.head.appendChild(meta);} 
-    meta.setAttribute('content', desc);
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <section className="container mx-auto px-4 py-10">
-          <h1 className="text-2xl lg:text-3xl font-bold mb-6">العروض الخاصة</h1>
-          <p className="text-muted-foreground mb-8">تصفح أحدث البانرات والعروض.</p>
+    <div className="min-h-screen bg-gray-50 pb-24" dir="rtl">
+      <Header title="العروض الخاصة" showBack={true} />
+
+      <main className="space-y-6 py-4">
+        {/* Carousel Section */}
+        <section className="px-0">
+          <div className="bg-white py-4 shadow-sm border-y border-gray-100">
+            <OffersCarousel />
+          </div>
         </section>
-        <OffersCarousel />
-        <section className="container mx-auto px-4 pb-14">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {/* Offers Grid */}
+        <section className="container mx-auto px-4">
+          <h3 className="text-lg font-black text-gray-800 mb-4 text-right">أحدث الخصومات</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {allOffers.map((o) => (
-              <div key={o.id} className="overflow-hidden rounded-xl shadow-card">
-                <img src={o.image} alt={o.alt} className="w-full h-64 object-cover" loading="lazy" />
+              <div key={o.id} className="group relative overflow-hidden rounded-2xl shadow-sm border border-gray-100 bg-white aspect-[16/9] hover:shadow-md transition-all">
+                <img
+                  src={o.image}
+                  alt={o.alt}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                  <span className="text-white font-bold text-sm">{o.alt}</span>
+                </div>
               </div>
             ))}
           </div>
         </section>
+
+        {/* Info Banner */}
+        <section className="px-4">
+          <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 text-center">
+            <h4 className="text-primary font-black text-lg mb-2">تسوق عروضنا الآن!</h4>
+            <p className="text-gray-600 text-sm">استمتع بتخفيضات حصرية تصل إلى 50% على مجموعة مختارة من المنتجات.</p>
+          </div>
+        </section>
       </main>
-      <Footer />
+
+      <BottomNav />
     </div>
   );
 };
 
 export default OffersPage;
+

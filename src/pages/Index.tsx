@@ -1,25 +1,20 @@
+
 import { Header } from "@/components/Header";
-import { Hero } from "@/components/Hero";
-import { OffersCarousel } from "@/components/OffersCarousel";
+import { BannerCarousel } from "@/components/BannerCarousel";
 import { Categories } from "@/components/Categories";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
-import { ProductRecommendations } from "@/components/ProductRecommendations";
-import { WhatsAppChat } from "@/components/WhatsAppChat";
-import { Footer } from "@/components/Footer";
+import { BottomNav } from "@/components/BottomNav";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <Hero />
-        <OffersCarousel />
+    <div className="min-h-screen bg-background pb-24">
+      <Header isHome={true} />
+      <main className="space-y-2">
+        <BannerCarousel />
         <Categories />
         <FeaturedProducts />
-        <ProductRecommendations />
       </main>
-      <Footer />
-      <WhatsAppChat />
+      <BottomNav />
     </div>
   );
 };

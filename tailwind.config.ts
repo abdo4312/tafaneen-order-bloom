@@ -29,10 +29,10 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))',
-					light: 'hsl(var(--primary-light))',
-					dark: 'hsl(var(--primary-dark))'
+					DEFAULT: '#C02626', // Updated to match Tafaneen App Red
+					foreground: '#FFFFFF',
+					light: '#D94A4A',
+					dark: '#9B1C1C'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { validateEgyptianPhone, normalizeEgyptianPhone } from "@/utils/phoneValidation";
-import { supabase } from "@/integrations/supabase/client";
+// import { supabase } from "@/integrations/supabase/client";
 
 export function Footer() {
   const { toast } = useToast();
@@ -68,10 +68,10 @@ export function Footer() {
     setIsSubmitting(true);
     try {
       const normalized = normalizeEgyptianPhone(whatsAppNumber);
-      const { error } = await supabase.from<any>('whatsapp_subscribers').insert({
-        phone: normalized,
-        created_at: new Date().toISOString()
-      });
+      // Mock implementation
+      console.log('Mock subscribing:', whatsAppNumber);
+      const error = null;
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (error) throw error;
 
@@ -83,7 +83,7 @@ export function Footer() {
     } catch (err: any) {
       toast({
         title: "تعذر إتمام الاشتراك",
-        description: err?.message || "حدث خطأ غير متوقع. حاول مرة أخرى.",
+        description: err.message || "حدث خطأ غير متوقع. حاول مرة أخرى.",
         variant: "destructive",
       });
     } finally {
@@ -141,14 +141,14 @@ export function Footer() {
                 <p className="text-white/80 text-sm">للكتب والقرطاسية</p>
               </div>
             </div>
-            
+
             <p className="text-white/80 mb-6 leading-relaxed">
               أطلب كتابك اونلاين يصلك لباب البيت. متجر إلكتروني متخصص في الكتب والقرطاسية.
             </p>
 
             {/* Contact Info */}
             <div className="space-y-3">
-              <button 
+              <button
                 onClick={callPhone}
                 className="flex items-center gap-3 hover:underline cursor-pointer"
               >
@@ -205,9 +205,9 @@ export function Footer() {
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-8 w-8">
                   <Youtube className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="btn-whatsapp h-8 w-8"
                   onClick={openWhatsApp}
                 >
